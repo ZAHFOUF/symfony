@@ -770,4 +770,40 @@ class Filesystem
     {
         self::$lastError = $msg;
     }
+
+     /**
+     * Duplicates a file, renames it, and replaces specified words in the duplicated file.
+     *
+     * @param string $filePath         Path of the file to duplicate
+     * @param string $newFileName      Name for the duplicated file
+     * @param string $targetWord       Word to be replaced in the duplicated file
+     * @param string $replacementWord  Word to replace with in the duplicated file
+     *
+     * @throws IOException When the file cannot be duplicated or modified
+     */
+    public function duplicateAndReplace(string $filePath, string $newFileName, string $targetWord, string $replacementWord): void
+    {
+        if (!file_exists($filePath)) {
+            throw new IOException(sprintf('The file "%s" does not exist.', $filePath));
+        }
+
+        $newFilePath = dirname($filePath) . DIRECTORY_SEPARATOR . $newFileName;
+
+        // Duplicate the file by copying it
+        $this->copy($filePath, $newFilePath);
+
+        // Replace the target word in the duplicated file
+        $fileContent = file_get_contents($newFilePath);
+        if ($fileContent === false) {
+            throw new IOException(sprintf('Unable to read the file "%s".', $newFilePath));
+        }
+
+        $updatedContent = str_replace($targetWord, $replacementWord, $fileContent);
+
+        if (file_put_contents($newFilePath, $updatedContent) === false) {
+            throw new IOException(sprintf('Unable to write to the file "%s".', $newFilePath));
+        }
+    }
+
+
 }
